@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.Properties;
 import java.util.Random;
 
-import com.kafka.config.ProducerConfig;
+import com.kafka.producer.config.ProducerConfig;
 import com.kafka.serializer.ArrayListSerializer;
 
 import org.apache.kafka.clients.producer.KafkaProducer;

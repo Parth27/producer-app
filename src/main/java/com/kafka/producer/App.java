@@ -7,7 +7,7 @@ import java.net.Socket;
 import java.net.URISyntaxException;
 import java.util.Scanner;
 
-import com.kafka.config.ProducerConfig;
+import com.kafka.producer.config.ProducerConfig;
 
 public class App {
     private volatile boolean running = true;

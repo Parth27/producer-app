@@ -1,4 +1,4 @@
-package com.kafka.config;
+package com.kafka.producer.config;
 
 public class ProducerConfig {
     public static final String SERVERS = "localhost:9092";
