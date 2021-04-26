@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.Properties;
 import java.util.Random;
 
-import com.kafka.config.KafkaConfig;
+import com.kafka.config.ProducerConfig;
 import com.kafka.serializer.ArrayListSerializer;
 
 import org.apache.kafka.clients.producer.KafkaProducer;
@@ -27,14 +27,44 @@ public class MessageProducer extends Thread {
     Random random;
     Producer<Integer, List<String>> producer;
     String servers;
+    int batchSize;
+    boolean running;
 
-    public MessageProducer(String servers) throws IOException, URISyntaxException {
+    public MessageProducer(String servers, int batchSize) throws IOException, URISyntaxException {
         this.servers = servers;
         messages = new ArrayList<>();
         random = new Random(42); // Set seed
         String fileName = "data/All_emails1.xlsx";
         FileInputStream fis = new FileInputStream(getFileFromResource(fileName));
         loadMessages(fis);
+        this.batchSize = batchSize;
+        running = false;
+    }
+
+    @Override
+    public void run() {
+        System.out.println("Servers: " + servers);
+        producer = getProducer();
+        int id = 0;
+        List<String> batch = new ArrayList<>();
+        System.out.println("Started producer");
+        running = true;
+        while (!isInterrupted()) {
+            for (int i = 0; i < batchSize; i++) {
+                batch.add(messages.get(random.nextInt(messages.size())));
+            }
+            ProducerRecord<Integer, List<String>> record = new ProducerRecord<>(ProducerConfig.TOPIC, id, batch);
+            producer.send(record);
+            id++;
+            batch.clear();
+            try {
+                Thread.sleep(ProducerConfig.FREQUENCY * 1000);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+        }
+        running = false;
+        producer.close();
     }
 
     private Producer<Integer, List<String>> getProducer() {
@@ -79,22 +109,16 @@ public class MessageProducer extends Thread {
         wb.close();
     }
 
-    @Override
-    public void run() {
-        producer = getProducer();
-        int batchSize;
-        int id = 0;
-        List<String> batch = new ArrayList<>();
-        while (!isInterrupted()) {
-            batchSize = (int) random.nextGaussian() * 5 + KafkaConfig.MEAN_BATCHSIZE;
-            for (int i = 0; i < batchSize; i++) {
-                batch.add(messages.get(random.nextInt(messages.size())));
+    class ProducerStop extends Thread {
+        @Override
+        public void run() {
+            try {
+                System.out.println("Stoping producer...");
+                running = false;
+                producer.close();
+            } catch (Exception e) {
+                e.printStackTrace();
             }
-            ProducerRecord<Integer, List<String>> record = new ProducerRecord<>(KafkaConfig.TOPIC, id, batch);
-            producer.send(record);
-            id++;
-            batch.clear();
         }
-        producer.close();
     }
 }
