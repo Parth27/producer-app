@@ -78,8 +78,7 @@ public class App {
 
     public static void main(String[] args) throws IOException, URISyntaxException {
         App producerApp = new App();
-        System.out.println("Started Kafka Producer...");
-        // producerApp.run();
-        producerApp.runDemo();
+        producerApp.run();
+        // producerApp.runDemo();
     }
 }
