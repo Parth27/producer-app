@@ -23,6 +23,7 @@ public class App {
         try (ServerSocket server = new ServerSocket(ProducerConfig.PORT)) {
             Socket socket;
             while (running) {
+                System.out.println("Waiting for servers list...");
                 socket = server.accept();
                 DataInputStream dis = new DataInputStream(socket.getInputStream());
                 if (producer.running) {

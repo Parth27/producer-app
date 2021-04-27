@@ -5,5 +5,5 @@ public class ProducerConfig {
     public static final String TOPIC = "Messages";
     public static final int MEAN_BATCHSIZE = 10;
     public static final int PORT = 4567;
-    public static final long FREQUENCY = 15L;
+    public static final long FREQUENCY = 10L;
 }
