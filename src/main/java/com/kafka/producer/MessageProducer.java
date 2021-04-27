@@ -34,7 +34,7 @@ public class MessageProducer extends Thread {
         this.servers = servers;
         messages = new ArrayList<>();
         random = new Random(42); // Set seed
-        String fileName = "data/All_emails1.xlsx";
+        String fileName = "data/Dataset_Emails.xlsx";
         FileInputStream fis = new FileInputStream(getFileFromResource(fileName));
         loadMessages(fis);
         this.batchSize = batchSize;
