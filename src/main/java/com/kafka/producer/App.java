@@ -37,8 +37,8 @@ public class App {
                 servers = dis.readUTF();
                 producer = new MessageProducer(servers, ProducerConfig.MEAN_BATCHSIZE);
                 Runtime.getRuntime().addShutdownHook(producer.new ProducerStop());
-                Thread batchModifier = new BatchModifier();
-                batchModifier.start();
+                // Thread batchModifier = new BatchModifier();
+                // batchModifier.start();
                 producer.start();
             }
         }

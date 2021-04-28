@@ -18,6 +18,7 @@ import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.serialization.IntegerSerializer;
+import org.apache.kafka.common.serialization.StringSerializer;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
@@ -25,7 +26,7 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 public class MessageProducer extends Thread {
     List<String> messages;
     Random random;
-    Producer<Integer, List<String>> producer;
+    Producer<Integer, String> producer;
     String servers;
     int batchSize;
     boolean running;
@@ -50,31 +51,32 @@ public class MessageProducer extends Thread {
         System.out.println("Started producer");
         running = true;
         while (!isInterrupted()) {
-            for (int i = 0; i < batchSize; i++) {
-                batch.add(messages.get(random.nextInt(messages.size())));
-            }
-            ProducerRecord<Integer, List<String>> record = new ProducerRecord<>(ProducerConfig.TOPIC, id, batch);
+            // for (int i = 0; i < batchSize; i++) {
+            //     batch.add(messages.get(random.nextInt(messages.size())));
+            // }
+            String message = messages.get(random.nextInt(messages.size()));
+            ProducerRecord<Integer, String> record = new ProducerRecord<>(ProducerConfig.TOPIC, id, message);
             producer.send(record);
             id++;
-            batch.clear();
-            try {
-                Thread.sleep(ProducerConfig.FREQUENCY * 1000);
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-            }
+            // batch.clear();
+            // try {
+            //     Thread.sleep(ProducerConfig.FREQUENCY * 1000);
+            // } catch (InterruptedException e) {
+            //     Thread.currentThread().interrupt();
+            // }
         }
         running = false;
         producer.close();
     }
 
-    private Producer<Integer, List<String>> getProducer() {
+    private Producer<Integer, String> getProducer() {
         Properties properties = new Properties();
         properties.setProperty("bootstrap.servers", servers);
         properties.setProperty("acks", "all");
         properties.put("retries", 0);
         properties.put("buffer.memory", 33554432);
         properties.setProperty("key.serializer", IntegerSerializer.class.getName());
-        properties.setProperty("value.serializer", ArrayListSerializer.class.getName());
+        properties.setProperty("value.serializer", StringSerializer.class.getName());
         return new KafkaProducer<>(properties);
     }
 
