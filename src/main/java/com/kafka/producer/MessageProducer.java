@@ -59,11 +59,13 @@ public class MessageProducer extends Thread {
             producer.send(record);
             id++;
             // batch.clear();
-            // try {
-            //     Thread.sleep(ProducerConfig.FREQUENCY * 1000);
-            // } catch (InterruptedException e) {
-            //     Thread.currentThread().interrupt();
-            // }
+            if (id % 10 == 0) {
+                try {
+                    Thread.sleep(10);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
+            }
         }
         running = false;
         producer.close();
