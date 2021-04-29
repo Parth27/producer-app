@@ -15,7 +15,7 @@ public class App {
     String servers;
 
     public App() throws IOException, URISyntaxException {
-        producer = new MessageProducer(ProducerConfig.SERVERS, ProducerConfig.MEAN_BATCHSIZE, 0);
+        producer = new MessageProducer(ProducerConfig.SERVERS, ProducerConfig.MEAN_BATCHSIZE, 400);
         servers = "";
     }
 
