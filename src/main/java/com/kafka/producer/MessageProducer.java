@@ -50,10 +50,9 @@ public class MessageProducer extends Thread {
         int id = 0;
         List<String> batch = new ArrayList<>();
         running = true;
-        System.out.print("Press Enter to begin producer: ");
         Scanner input = new Scanner(System.in);
+        System.out.print("Press Enter to begin producer: ");
         input.nextLine();
-        input.close();
         System.out.println("Started producer");
         while (!isInterrupted()) {
             // for (int i = 0; i < batchSize; i++) {
@@ -76,6 +75,7 @@ public class MessageProducer extends Thread {
                 }
             }
         }
+        input.close();
         running = false;
         producer.close();
     }
