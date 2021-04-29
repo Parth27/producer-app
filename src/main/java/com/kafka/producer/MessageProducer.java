@@ -31,8 +31,9 @@ public class MessageProducer extends Thread {
     String servers;
     int batchSize;
     boolean running;
+    int sleep;
 
-    public MessageProducer(String servers, int batchSize) throws IOException, URISyntaxException {
+    public MessageProducer(String servers, int batchSize, int sleep) throws IOException, URISyntaxException {
         this.servers = servers;
         messages = new ArrayList<>();
         random = new Random(42); // Set seed
@@ -41,6 +42,7 @@ public class MessageProducer extends Thread {
         loadMessages(fis);
         this.batchSize = batchSize;
         running = false;
+        this.sleep = sleep;
     }
 
     @Override
@@ -48,16 +50,9 @@ public class MessageProducer extends Thread {
         System.out.println("Servers: " + servers);
         producer = getProducer();
         int id = 0;
-        List<String> batch = new ArrayList<>();
         running = true;
-        // Scanner input = new Scanner(System.in);
-        // System.out.print("Press Enter to begin producer: ");
-        // input.nextLine();
         System.out.println("Started producer");
         while (!isInterrupted()) {
-            // for (int i = 0; i < batchSize; i++) {
-            //     batch.add(messages.get(random.nextInt(messages.size())));
-            // }
             String message = messages.get(random.nextInt(messages.size()));
             ProducerRecord<Integer, String> record = new ProducerRecord<>(ProducerConfig.TOPIC, id, message);
             try {
@@ -66,8 +61,7 @@ public class MessageProducer extends Thread {
                 // Do Nothing
             }
             id++;
-            // batch.clear();
-            if (id % 400 == 0) {
+            if (id % sleep == 0) {
                 try {
                     Thread.sleep(10);
                 } catch (InterruptedException e) {
@@ -75,7 +69,6 @@ public class MessageProducer extends Thread {
                 }
             }
         }
-        // input.close();
         running = false;
         producer.close();
     }

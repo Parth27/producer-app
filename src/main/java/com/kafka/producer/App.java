@@ -15,11 +15,13 @@ public class App {
     String servers;
 
     public App() throws IOException, URISyntaxException {
-        producer = new MessageProducer(ProducerConfig.SERVERS, ProducerConfig.MEAN_BATCHSIZE);
+        producer = new MessageProducer(ProducerConfig.SERVERS, ProducerConfig.MEAN_BATCHSIZE, 0);
         servers = "";
     }
 
     public void run() throws IOException, URISyntaxException {
+        int[] offsets = {10,600};
+        int i = 0;
         try (ServerSocket server = new ServerSocket(ProducerConfig.PORT)) {
             Socket socket;
             while (running) {
@@ -35,7 +37,8 @@ public class App {
                     }
                 }
                 servers = dis.readUTF();
-                producer = new MessageProducer(servers, ProducerConfig.MEAN_BATCHSIZE);
+                producer = new MessageProducer(servers, ProducerConfig.MEAN_BATCHSIZE, offsets[Math.min(i,1)]);
+                i++;
                 Runtime.getRuntime().addShutdownHook(producer.new ProducerStop());
                 // Thread batchModifier = new BatchModifier();
                 // batchModifier.start();
@@ -66,7 +69,7 @@ public class App {
                 producer.interrupt();
                 try {
                     producer.join();
-                    producer = new MessageProducer(servers, newBatchSize);
+                    producer = new MessageProducer(servers, newBatchSize, 0);
                     producer.start();
                 } catch (IOException | URISyntaxException | InterruptedException e) {
                     e.printStackTrace();
