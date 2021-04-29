@@ -10,6 +10,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Properties;
 import java.util.Random;
+import java.util.Scanner;
 
 import com.kafka.producer.config.ProducerConfig;
 import com.kafka.serializer.ArrayListSerializer;
@@ -48,18 +49,26 @@ public class MessageProducer extends Thread {
         producer = getProducer();
         int id = 0;
         List<String> batch = new ArrayList<>();
-        System.out.println("Started producer");
         running = true;
+        System.out.print("Press Enter to begin producer: ");
+        Scanner input = new Scanner(System.in);
+        input.nextLine();
+        input.close();
+        System.out.println("Started producer");
         while (!isInterrupted()) {
             // for (int i = 0; i < batchSize; i++) {
             //     batch.add(messages.get(random.nextInt(messages.size())));
             // }
             String message = messages.get(random.nextInt(messages.size()));
             ProducerRecord<Integer, String> record = new ProducerRecord<>(ProducerConfig.TOPIC, id, message);
-            producer.send(record);
+            try {
+                producer.send(record);
+            } catch (Exception e) {
+                // Do Nothing
+            }
             id++;
             // batch.clear();
-            if (id % 10 == 0) {
+            if (id % 400 == 0) {
                 try {
                     Thread.sleep(10);
                 } catch (InterruptedException e) {
