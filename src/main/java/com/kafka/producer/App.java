@@ -1,9 +1,6 @@
 package com.kafka.producer;
 
-import java.io.DataInputStream;
 import java.io.IOException;
-import java.net.ServerSocket;
-import java.net.Socket;
 import java.net.URISyntaxException;
 import java.util.Scanner;
 
@@ -12,70 +9,32 @@ import com.kafka.producer.config.ProducerConfig;
 public class App {
     private volatile boolean running = true;
     MessageProducer producer;
-    String servers;
 
     public App() throws IOException, URISyntaxException {
-        producer = new MessageProducer(ProducerConfig.SERVERS, ProducerConfig.MEAN_BATCHSIZE, 400);
-        servers = "";
+        producer = new MessageProducer(ProducerConfig.SERVERS, ProducerConfig.MESSAGE_RATE);
     }
 
     public void run() throws IOException, URISyntaxException {
-        int[] offsets = {10,600};
-        int i = 0;
-        try (ServerSocket server = new ServerSocket(ProducerConfig.PORT)) {
-            Socket socket;
-            while (running) {
-                System.out.println("Waiting for servers list...");
-                socket = server.accept();
-                DataInputStream dis = new DataInputStream(socket.getInputStream());
-                if (producer.running) {
-                    producer.interrupt();
-                    try {
-                        producer.join();
-                    } catch (InterruptedException e) {
-                        Thread.currentThread().interrupt();
-                    }
-                }
-                servers = dis.readUTF();
-                producer = new MessageProducer(servers, ProducerConfig.MEAN_BATCHSIZE, offsets[Math.min(i,1)]);
-                i++;
-                Runtime.getRuntime().addShutdownHook(producer.new ProducerStop());
-                // Thread batchModifier = new BatchModifier();
-                // batchModifier.start();
-                producer.start();
-            }
-        }
-    }
-
-    public void runDemo() {
         while (running) {
-            Runtime.getRuntime().addShutdownHook(producer.new ProducerStop());
+            Runtime.getRuntime().addShutdownHook(new App().new ProducerStop());
             producer.start();
         }
     }
 
-    class BatchModifier extends Thread {
-        Scanner input;
-
-        public BatchModifier() {
-            System.out.println("Startup Batch Size = "+ProducerConfig.MEAN_BATCHSIZE);
-            input = new Scanner(System.in);
-        }
-
+    class ProducerStop extends Thread {
         @Override
         public void run() {
-            while (running) {
-                int newBatchSize = input.nextInt();
+            try {
+                System.out.println("Stoping producer...");
+                running = false;
                 producer.interrupt();
-                try {
-                    producer.join();
-                    producer = new MessageProducer(servers, newBatchSize, 0);
-                    producer.start();
-                } catch (IOException | URISyntaxException | InterruptedException e) {
-                    e.printStackTrace();
-                    Thread.currentThread().interrupt();
-                }
-                System.out.println("Modify Batch Size:\t");
+                System.out.println("Enter new server list (press ^C to exit): ");
+                Scanner in = new Scanner(System.in);
+                String serverList = in.nextLine();
+                producer = new MessageProducer(serverList, ProducerConfig.MESSAGE_RATE);
+                in.close();
+            } catch (Exception e) {
+                e.printStackTrace();
             }
         }
     }
@@ -83,6 +42,5 @@ public class App {
     public static void main(String[] args) throws IOException, URISyntaxException {
         App producerApp = new App();
         producerApp.run();
-        // producerApp.runDemo();
     }
 }

@@ -10,10 +10,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Properties;
 import java.util.Random;
-import java.util.Scanner;
 
 import com.kafka.producer.config.ProducerConfig;
-import com.kafka.serializer.ArrayListSerializer;
 
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.Producer;
@@ -29,20 +27,16 @@ public class MessageProducer extends Thread {
     Random random;
     Producer<Integer, String> producer;
     String servers;
-    int batchSize;
-    boolean running;
-    int sleep;
+    int messageRate;
 
-    public MessageProducer(String servers, int batchSize, int sleep) throws IOException, URISyntaxException {
+    public MessageProducer(String servers, int messageRate) throws IOException, URISyntaxException {
         this.servers = servers;
         messages = new ArrayList<>();
         random = new Random(42); // Set seed
-        String fileName = "data/Dataset_Emails.xlsx";
+        String fileName = "data/"+ProducerConfig.DATAFILE;
         FileInputStream fis = new FileInputStream(getFileFromResource(fileName));
         loadMessages(fis);
-        this.batchSize = batchSize;
-        running = false;
-        this.sleep = sleep;
+        this.messageRate = messageRate;
     }
 
     @Override
@@ -50,18 +44,13 @@ public class MessageProducer extends Thread {
         System.out.println("Servers: " + servers);
         producer = getProducer();
         int id = 0;
-        running = true;
         System.out.println("Started producer");
         while (!isInterrupted()) {
             String message = messages.get(random.nextInt(messages.size()));
             ProducerRecord<Integer, String> record = new ProducerRecord<>(ProducerConfig.TOPIC, id, message);
-            try {
-                producer.send(record);
-            } catch (Exception e) {
-                // Do Nothing
-            }
+            producer.send(record);
             id++;
-            if (id % sleep == 0) {
+            if (id % messageRate == 0) {
                 try {
                     Thread.sleep(10);
                 } catch (InterruptedException e) {
@@ -69,7 +58,6 @@ public class MessageProducer extends Thread {
                 }
             }
         }
-        running = false;
         producer.close();
     }
 
@@ -113,18 +101,5 @@ public class MessageProducer extends Thread {
             }
         }
         wb.close();
-    }
-
-    class ProducerStop extends Thread {
-        @Override
-        public void run() {
-            try {
-                System.out.println("Stoping producer...");
-                running = false;
-                producer.close();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
     }
 }
