@@ -33,7 +33,7 @@ public class App {
                 String serverList = in.nextLine();
                 producer = new MessageProducer(serverList, ProducerConfig.MESSAGE_RATE);
                 in.close();
-            } catch (Exception e) {
+            } catch (IOException | URISyntaxException e) {
                 e.printStackTrace();
             }
         }
